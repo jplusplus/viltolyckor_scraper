@@ -21,12 +21,12 @@ class ViltolyckorScraper(BaseScraper):
         """
         dataset = dimension.dataset
         if dimension.id == "year":
-            for option in dataset.soup.select("#ctl10_lstYearInterval option"):
+            for option in dataset.soup.select("#ctl11_lstYearInterval option"):
                 value = option.get("value")
                 yield DimensionValue(value, dimension)
 
         elif dimension.id == "region":
-            for option in dataset.soup.select("#ctl10_lstCounties option"):
+            for option in dataset.soup.select("#ctl11_lstCounties option"):
                 value = option.get("value")
                 label = option.text.strip()
                 yield DimensionValue(value, dimension, label)
@@ -69,15 +69,17 @@ class ViltolyckorScraper(BaseScraper):
                 _query[dim] = [x.value for x in dataset.dimensions[dim].allowed_values]
             elif not isinstance(value, list):
                 _query[dim] = [value]
-        input_elems = dataset.soup.select("input['value']")
-        payload = dict([(x["name"], x["value"]) for x in input_elems])
+        # get all input elem values
+        payload = {}
+        for input_elem in dataset.soup.select("input"):
+            payload[input_elem["name"]] = input_elem.get("value")
 
         for region in _query["region"]:
             region_id = dataset._get_region_id(region)
             for year in _query["year"]:
                 payload.update({
-                    "ctl01$ctl10$lstCounties": region_id,
-                    "ctl01$ctl10$lstYearInterval": year,
+                    "ctl01$ctl11$lstCounties": region_id,
+                    "ctl01$ctl11$lstYearInterval": year,
                 })
                 result_page = self._post_html(URL, payload)
 
@@ -90,11 +92,19 @@ class ViltolyckorScraper(BaseScraper):
     ###
     # HELPER METHODS
     ###
+    @property
+    def session(self):
+        """
+        """
+        if not hasattr(self, "_session"):
+            self._session = requests.Session()
+        return self._session
+
     def _get_html(self, url):
         """ Get html from url
         """
         self.log.info(u"/GET {}".format(url))
-        r = requests.get(url)
+        r = self.session.get(url)
         if hasattr(r, 'from_cache'):
             if r.from_cache:
                 self.log.info("(from cache)")
@@ -105,7 +115,7 @@ class ViltolyckorScraper(BaseScraper):
 
     def _post_html(self, url, payload):
         self.log.info(u"/POST {} with {}".format(url, payload))
-        r = requests.post(url, payload)
+        r = self.session.post(url, payload)
         r.raise_for_status()
 
         return r.content

@@ -19,7 +19,7 @@ def parse_result_page(html):
     year_cell = table.select_one("th").text
     year = re.search("(\d\d\d\d)", year_cell).group(0)
 
-    region_select_elem = soup.select_one("#ctl10_lstCounties")
+    region_select_elem = soup.select_one("#ctl11_lstCounties")
     selected_region = region_select_elem.find('option', selected=True)
     # if no option is selected the data refers to the first region in list ("Hela landet")
     if selected_region is None:
