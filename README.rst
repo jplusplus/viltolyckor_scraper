@@ -47,7 +47,7 @@ Example usage
 
 
 Develop
-------
+-------
 
 Set up:
 
@@ -60,3 +60,15 @@ Run tests:
 .. code:: bash
 
   $ make tests
+
+
+Deployment
+----------
+
+To deploy a new version to PyPi:
+
+1. Update version in `setup.py`
+2. Build: `python3 setup.py sdist bdist_wheel`
+3. Upload: `python3 -m twine upload dist/viltolyckor_scraper-X.Y.X*`
+
+...assuming you have Twine installed (`pip install twine`) and configured.
